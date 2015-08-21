@@ -100,7 +100,7 @@ $hosts_info = get_host_info( $hosts );
 	<meta charset="UTF-8">
 	<title>Primary Vagrant Dashboard</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" type="text/css" href="style.css?ver=5" />
+	<link rel="stylesheet" type="text/css" href="css/dashboard.css?ver=2" />
 	<script type="text/JavaScript" src="bower_components/jquery/dist/jquery.min.js"></script>
 
 	<script type="text/javascript" src="src/js/scripts.js"></script>
@@ -155,7 +155,7 @@ $hosts_info = get_host_info( $hosts );
 		</ul>
 	</div>
 	<div class="col-sm-8 col-sm-offset-4 col-md-9 col-md-offset-3 main">
-		<h1 class="page-header">VVV Dashboard</h1>
+		<h1 class="page-header">PV Dashboard</h1>
 
 		<div class="row">
 			<div class="col-sm-12 hosts">
@@ -300,7 +300,7 @@ $hosts_info = get_host_info( $hosts );
 		</p>
 
 		<p>
-			<small>VVV Dashboard Version: 0.0.5</small>
+			<small>PV Dashboard Version: 0.0.1</small>
 		</p>
 	</div>
 </div>
