@@ -59,7 +59,7 @@ function get_hosts() {
  * @param  array $vhosts Array of site config data for all hosts.
  * @return array  Modified version of parameter array with attnl info.
  */
-function get_host_info( $vhosts = array() ) {
+function get_wpdebug_info( $vhosts = array() ) {
 	if ( is_array( $vhosts ) && ! empty( $vhosts ) ) {
 		// Loop through each DocumentRoot and check for wp-config.php.
 		foreach ( $vhosts as $key => $vhost ) {
@@ -92,7 +92,7 @@ function get_host_info( $vhosts = array() ) {
 }
 
 $hosts = get_hosts();
-$hosts_info = get_host_info( $hosts );
+$hosts_info = get_wpdebug_info( $hosts );
 ?>
 <!DOCTYPE html>
 <html>
