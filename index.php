@@ -15,14 +15,14 @@
 function get_hosts() {
 	// Get Vhost conf files.
 	$path         = '/etc/apache2/sites-available';
-	$a_directory  = scandir( $path );
-	$a_conf_files = array_diff( $a_directory, array( '..', '.' ) );
+	$directories  = scandir( $path );
+	$config_files = array_diff( $directories, array( '..', '.' ) );
 	$info = array();
 	$x = 0;
 
-	foreach ( $a_conf_files as $conf_file ) {
-		error_log( 'FILE: ' . $conf_file );
-		$Thisfile   = fopen( $path . '/' . $conf_file, 'r' ) or die( 'No open ups..' );
+	foreach ( $config_files as $config_file ) {
+		error_log( 'FILE: ' . $config_file );
+		$Thisfile   = fopen( $path . '/' . $config_file, 'r' ) or die( "$config_file count not be opened." );
 		while ( ! feof( $Thisfile ) ) {
 			$line = fgets( $Thisfile );
 			$line = trim( $line );
@@ -93,6 +93,20 @@ function get_wpdebug_info( $vhosts = array() ) {
 
 $hosts = get_hosts();
 $hosts_info = get_wpdebug_info( $hosts );
+
+/**
+ * Handle form submission (new site creation)
+ */
+$newsite = array();
+if (isset( $_REQUEST['pv-new-site-submit'] ) ){
+	$newsite['dbname']     = isset( $_REQUEST['pv-new-site-db-name'] ) ? $_REQUEST['pv-new-site-db-name'] : '';
+	$newsite['foldername'] = isset( $_REQUEST['pv-new-site-folder-name'] ) ? $_REQUEST['pv-new-site-folder-name'] : '';
+	$newsite['domainname'] = isset( $_REQUEST['pv-new-site-domain-name'] ) ? $_REQUEST['pv-new-site-domain-name'] : '';
+
+	$result = new Class_PV_Site_Creator( $newsite['domainname'], $newsite['dbname'], $newsite['foldername'] );
+}
+
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -100,10 +114,10 @@ $hosts_info = get_wpdebug_info( $hosts );
 	<meta charset="UTF-8">
 	<title>Primary Vagrant Dashboard</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" type="text/css" href="css/dashboard.css?ver=2" />
-	<script type="text/JavaScript" src="bower_components/jquery/dist/jquery.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="http://pv/custom/css/dashboard.css?ver=2" />
+	<script type="text/JavaScript" src="http://pv/custom/bower_components/jquery/dist/jquery.min.js"></script>
 
-	<script type="text/javascript" src="js/search.js"></script>
+	<script type="text/javascript" src="http://pv/custom/js/search.js"></script>
 </head>
 <body>
 <div style="display: none;"><?php print_r( $hosts_info ); ?></div>
@@ -195,7 +209,7 @@ $hosts_info = get_wpdebug_info( $hosts );
 									<?php if ( 'true' == $array['is_wp'] ) { ?>
 										<a class="btn btn-warning btn-xs" href="http://<?php echo $array['ServerName']; ?>/wp-admin" target="_blank">Admin/Login</a>
 									<?php } ?>
-									<a class="btn btn-success btn-xs" href="http://<?php echo $array['ServerName']; ?>/?XDEBUG_PROFILE" target="_blank">Profiler</a>
+									<a class="btn btn-success btn-xs" href="http://<?php echo $array['ServerName']; ?>/?VAGRANT_DEBUG" target="_blank">Profiler</a>
 								</td>
 							</tr>
 							<?php
@@ -206,10 +220,39 @@ $hosts_info = get_wpdebug_info( $hosts );
 			</div>
 		</div>
 
-		<h1>To easily spin up new WordPress sites</h1>
+		<h1>To spin up new sites</h1>
 
+		<form method="post">
+			<label for="pv-new-site-db-name">Database Name</label>
+			<input type="text" id="pv-new-site-db-name" name="pv-new-site-db-name" />
+
+			<label for="pv-new-site-domain-name">Domain Name</label>
+			<input type="text" id="pv-new-site-domain-name" name="pv-new-site-domain-name" />
+
+			<label for="pv-new-site-folder-name">Folder Name</label>
+			<input type="text" id="pv-new-site-folder-name" name="pv-new-site-folder-name" />
+
+			<button id="pv-new-site-submit" name="pv-new-site-submit">Create New Site!</button>
+		</form>
+		<p>Instructions go here.</p>
+
+		<ul>
+			<li>VagrantFile (/PV)</li>
+			<li>Mappings File (/PV/www)</li>
+			<li>PV-Hosts (PV/www)</li>
+		</ul>
+
+		<!--
+		<ul>
+			<li>config.vm.synced_folder "/Users/MyUser/Sites/Mysite/htdocs", "/var/www/mysite.pv", :owner => "www-data", :mount_options => [ "dmode=775", "fmode=774"]</li>
+			<li>config.vm.synced_folder "/Users/MyUser/my-awesome-plugin", "/var/www/legacy.wordpress.pv/htdocs/content/plugins/my-awesome-plugin", :owner => "www-data", :mount_options => [ "dmode=775", "fmode=774"]</li>
+			<li>config.vm.synced_folder "/Users/MyUser/my-awesome-plugin", "/var/www/stable.wordpress.pv/htdocs/content/plugins/my-awesome-plugin", :owner => "www-data", :mount_options => [ "dmode=775", "fmode=774"]</li>
+			<li>config.vm.synced_folder "/Users/MyUser/my-awesome-plugin", "/var/www/trunk.wordpress.pv/htdocs/content/plugins/my-awesome-plugin", :owner => "www-data", :mount_options => [ "dmode=775", "fmode=774"]</li>
+		</ul>
+		-->
 		<p>Use <a target="_blank" href="https://github.com/bradp/vv">Variable VVV (newest)</a></p>
 
+		<!--
 		<h2>Variable VVV Commands</h2>
 
 		<table class="table table-responsive table-bordered table-striped">
@@ -287,7 +330,7 @@ $hosts_info = get_wpdebug_info( $hosts );
 
 			</tbody>
 		</table>
-
+		-->
 		<p>This bash script makes it easy to spin up a new WordPress site using
 			<a href="https://github.com/Varying-Vagrant-Vagrants/VVV">Varying Vagrant Vagrants</a>.</p>
 
