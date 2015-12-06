@@ -1,17 +1,5 @@
 <?php
-// $path = '../../';
-/**
- * Create an array of the hosts from all of the VVV host files
- *
- * @author         Jeff Behnke <code@validwebs.com>
- * @copyright  (c) 2014 ValidWebs.com
- *
- * Created:    5/23/14, 12:57 PM
- *
- * @param $path
- *
- * @return array
- */
+
 function get_hosts() {
 	// Get Vhost conf files.
 	$path         = '/etc/apache2/sites-available';
@@ -33,6 +21,8 @@ function get_hosts() {
 			if ( ! empty( $tokens ) ) {
 				if ( strtolower( $tokens[0] ) == 'servername' ) {
 					$info[ $x ]['ServerName'] = $tokens[1];
+				} else {
+					continue; // Don't count it unless it has a servername.
 				}
 				if ( strtolower( $tokens[0] ) == 'documentroot' ) {
 					$info[ $x ]['DocumentRoot'] = $tokens[1];
@@ -87,25 +77,12 @@ function get_wpdebug_info( $vhosts = array() ) {
 			}
 		}
 	}
-	//error_log( print_r( $vhosts, true ) );
 	return $vhosts;
 }
 
-$hosts = get_hosts();
+$hosts      = get_hosts();
 $hosts_info = get_wpdebug_info( $hosts );
-
-/**
- * Handle form submission (new site creation)
- */
-$newsite = array();
-if (isset( $_REQUEST['pv-new-site-submit'] ) ){
-	$newsite['dbname']     = isset( $_REQUEST['pv-new-site-db-name'] ) ? $_REQUEST['pv-new-site-db-name'] : '';
-	$newsite['foldername'] = isset( $_REQUEST['pv-new-site-folder-name'] ) ? $_REQUEST['pv-new-site-folder-name'] : '';
-	$newsite['domainname'] = isset( $_REQUEST['pv-new-site-domain-name'] ) ? $_REQUEST['pv-new-site-domain-name'] : '';
-
-	$result = new Class_PV_Site_Creator( $newsite['domainname'], $newsite['dbname'], $newsite['foldername'] );
-}
-
+$site_count = count( $hosts );
 
 ?>
 <!DOCTYPE html>
@@ -132,7 +109,7 @@ if (isset( $_REQUEST['pv-new-site-submit'] ) ){
 			<li><a href="http://mailcatcher.pv:1080" target="_blank">MailCatcher</a></li>
 			<li><a href="http://replacedb.pv" target="_blank">Replace DB</a></li>
 			<li><a href="http://webgrind.pv" target="_blank">Webgrind</a></li>
-			<li><a href="/phpinfo/" target="_blank">PHP Info</a></li>
+			<li><a href="http://pv/custom/phpinfo.php" target="_blank">PHP Info</a></li>
 		</ul>
 	</div>
 </div>
@@ -142,29 +119,33 @@ if (isset( $_REQUEST['pv-new-site-submit'] ) ){
 
 		<p class="sidebar-title">Useful Commands</p>
 		<ul class="nav">
-			<li><a href="https://github.com/varying-vagrant-vagrants/vvv/#now-what" target="_blank">Commands Link</a>
-			</li>
+			<!-- <li><a href="https://github.com/varying-vagrant-vagrants/vvv/#now-what" target="_blank">Commands Link</a>
+			</li> -->
 			<li><code>vagrant up</code></li>
 			<li><code>vagrant halt</code></li>
 			<li><code>vagrant ssh</code></li>
 			<li><code>vagrant suspend</code></li>
 			<li><code>vagrant resume</code></li>
-			<li><code>xdebug_on</code>
+<!-- 			<li><code>xdebug_on</code>
 				<a href="https://github.com/Varying-Vagrant-Vagrants/VVV/wiki/Code-Debugging#turning-on-xdebug" target="_blank">xDebug Link</a>
-			</li>
+			</li> -->
 		</ul>
 
 
 		<p class="sidebar-title">References &amp; Extras</p>
 		<ul class="nav">
-			<li><a target="_blank" href="https://github.com/bradp/vv">Variable VVV (newest)</a></li>
+			<li><a target="_blank" href="https://github.com/ChrisWiegman/Primary-Vagrant">Primary Vagrant</a>
+			<li><a target="_blank" href="https://github.com/ChrisWiegman/Primary-Vagrant/issues">Primary Vagrant Issues</a>
+			<li><a target="_blank" href="https://github.com/crazyjaco/PV-Dashboard">PV Dashboard</a>
+			<li><a target="_blank" href="https://github.com/crazyjaco/PV-Dashboard/issues">PV Dashboard Issues</a>
+<!-- 			<li><a target="_blank" href="https://github.com/bradp/vv">Variable VVV (newest)</a></li>
 			<li><a target="_blank" href="https://github.com/aliso/vvv-site-wizard">VVV Site Wizard (old)</a></li>
 			<li><a href="https://github.com/varying-vagrant-vagrants/vvv/" target="_blank">Varying Vagrant Vagrants</a>
 			</li>
 			<li><a href="https://github.com/topdown/VVV-Dashboard" target="_blank">VVV Dashboard Repo</a></li>
 			<li><a href="https://github.com/topdown/VVV-Dashboard/issues" target="_blank">VVV Dashboard Issues</a></li>
 			<li>
-				<a href="https://github.com/aubreypwd/wordpress-themereview-vvv" target="_blank">VVV WordPress ThemeReview</a>
+				<a href="https://github.com/aubreypwd/wordpress-themereview-vvv" target="_blank">VVV WordPress ThemeReview</a> -->
 			</li>
 		</ul>
 	</div>
@@ -174,9 +155,8 @@ if (isset( $_REQUEST['pv-new-site-submit'] ) ){
 		<div class="row">
 			<div class="col-sm-12 hosts">
 				<p>
-					<strong>Current Hosts = <?php echo isset( $hosts['site_count'] ) ? $hosts['site_count'] : ''; ?></strong>
+					<strong>Current Hosts = <?php echo isset( $site_count ) ? $site_count : ''; ?></strong>
 				</p>
-				<small>Note: To profile, <code>xdebug_on</code> must be set.</small>
 
 				<p class="search-box">Live Search: <input type="text" id="text-search" />
 					<!--<input id="search" type="button" value="Search" />
@@ -220,38 +200,8 @@ if (isset( $_REQUEST['pv-new-site-submit'] ) ){
 			</div>
 		</div>
 
-		<h1>To spin up new sites</h1>
-
-		<form method="post">
-			<label for="pv-new-site-db-name">Database Name</label>
-			<input type="text" id="pv-new-site-db-name" name="pv-new-site-db-name" />
-
-			<label for="pv-new-site-domain-name">Domain Name</label>
-			<input type="text" id="pv-new-site-domain-name" name="pv-new-site-domain-name" />
-
-			<label for="pv-new-site-folder-name">Folder Name</label>
-			<input type="text" id="pv-new-site-folder-name" name="pv-new-site-folder-name" />
-
-			<button id="pv-new-site-submit" name="pv-new-site-submit">Create New Site!</button>
-		</form>
-		<p>Instructions go here.</p>
-
-		<ul>
-			<li>VagrantFile (/PV)</li>
-			<li>Mappings File (/PV/www)</li>
-			<li>PV-Hosts (PV/www)</li>
-		</ul>
-
-		<!--
-		<ul>
-			<li>config.vm.synced_folder "/Users/MyUser/Sites/Mysite/htdocs", "/var/www/mysite.pv", :owner => "www-data", :mount_options => [ "dmode=775", "fmode=774"]</li>
-			<li>config.vm.synced_folder "/Users/MyUser/my-awesome-plugin", "/var/www/legacy.wordpress.pv/htdocs/content/plugins/my-awesome-plugin", :owner => "www-data", :mount_options => [ "dmode=775", "fmode=774"]</li>
-			<li>config.vm.synced_folder "/Users/MyUser/my-awesome-plugin", "/var/www/stable.wordpress.pv/htdocs/content/plugins/my-awesome-plugin", :owner => "www-data", :mount_options => [ "dmode=775", "fmode=774"]</li>
-			<li>config.vm.synced_folder "/Users/MyUser/my-awesome-plugin", "/var/www/trunk.wordpress.pv/htdocs/content/plugins/my-awesome-plugin", :owner => "www-data", :mount_options => [ "dmode=775", "fmode=774"]</li>
-		</ul>
-		-->
-		<p>Use <a target="_blank" href="https://github.com/bradp/vv">Variable VVV (newest)</a></p>
-
+<!-- 		<p>Use <a target="_blank" href="https://github.com/bradp/vv">Variable VVV (newest)</a></p>
+ -->
 		<!--
 		<h2>Variable VVV Commands</h2>
 
@@ -271,79 +221,27 @@ if (isset( $_REQUEST['pv-new-site-submit'] ) ){
 					List all VVV sites
 				</td>
 			</tr>
-			<tr>
-				<td>
-					create or --create or -c
-				</td>
-				<td>
-					Create a new site
-				</td>
-			</tr>
-			<tr>
-				<td>
-					remove or --remove or -r
-				</td>
-				<td>
-					Remove a site
-				</td>
-			</tr>
-			<tr>
-				<td>
-					deployment-create or --deployment-create
-				</td>
-				<td>
-					Set up deployment for a site
-				</td>
-			</tr>
-			<tr>
-				<td>
-					deployment-remove or --deployment-remove
-				</td>
-				<td>
-					Remove deployment for a site
-				</td>
-			</tr>
-			<tr>
-				<td>
-					deployment-config or --deployment-config
-				</td>
-				<td>
-					Manually edit deployment configuration
-				</td>
-			</tr>
-			<tr>
-				<td>
-					blueprint-init or --blueprint-init
-				</td>
-				<td>
-					Initialize blueprint file
-				</td>
-			</tr>
-			<tr>
-				<td>
-					vagrant v --vagrant -v
-				</td>
-				<td>
-					Pass vagrant command through to VVV
-				</td>
-			</tr>
+
 
 			</tbody>
 		</table>
 		-->
-		<p>This bash script makes it easy to spin up a new WordPress site using
+
+
+<!-- 		<p>This bash script makes it easy to spin up a new WordPress site using
 			<a href="https://github.com/Varying-Vagrant-Vagrants/VVV">Varying Vagrant Vagrants</a>.</p>
 
 		<p>You can also use the old script If Using
 			<a href="https://github.com/aliso/vvv-site-wizard" target="_blank">VVV Site Wizard</a>
-			<strong>But it is no longer maintained!</strong></p>
+			<strong>But it is no longer maintained!</strong></p> -->
 
 		<p>
-			<strong>NOTE: </strong>This Dashboard project has no affiliation with Varying Vagrant Vagrants or any other components listed here.
+			<strong>NOTE: </strong>This Dashboard project has no affiliation with Primary Vagrant or any other components listed here.
 		</p>
 
 		<p>
-			<small>PV Dashboard Version: 0.0.1</small>
+			<small>PV Dashboard Version: 0.0.1</small><br/>
+			<small>Based on topdown's <a href="https://github.com/topdown/VVV-Dashboard/">VVV Dashboard<a/>.</small>
 		</p>
 	</div>
 </div>
